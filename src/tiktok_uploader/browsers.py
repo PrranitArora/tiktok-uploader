@@ -1,7 +1,7 @@
 """Gets the browser's given the user's input"""
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.safari.options import Options as SafariOptions
+
 from selenium.webdriver.edge.options import Options as EdgeOptions
 
 # Webdriver managers
@@ -16,26 +16,15 @@ from selenium import webdriver
 
 from tiktok_uploader import config
 from tiktok_uploader.proxy_auth_extension.proxy_auth_extension import generate_proxy_auth_extension
-
+import chromedriver_autoinstaller
 
 def get_browser(name: str = 'chrome', options=None, *args, **kwargs) -> webdriver:
     """
     Gets a browser based on the name with the ability to pass in additional arguments
     """
-
+    chromedriver_autoinstaller.install()
     # get the web driver for the browser
-    driver_to_use = get_driver(name=name, *args, **kwargs)
-
-    # gets the options for the browser
-
-    options = options or get_default_options(name=name, *args, **kwargs)
-
-    # combines them together into a completed driver
-    service = get_service(name=name)
-    if service:
-        driver = driver_to_use(service=service, options=options)
-    else:
-        driver = driver_to_use(options=options)
+    driver = webdriver.Chrome()
 
     driver.implicitly_wait(config['implicit_wait'])
 
@@ -61,7 +50,7 @@ def get_service(name: str = 'chrome'):
     if _clean_name(name) in services:
         return services[name]()
 
-    return None # Safari doesn't need a service
+    return None
 
 
 def get_default_options(name: str, *args, **kwargs):
@@ -125,19 +114,6 @@ def firefox_defaults(*args, headless: bool = False, proxy: dict = None, **kwargs
     return options
 
 
-def safari_defaults(*args, headless: bool = False, proxy: dict = None, **kwargs) -> SafariOptions:
-    """
-    Creates Safari with default options
-    """
-    options = SafariOptions()
-
-    # default options
-
-    if headless:
-        options.add_argument('--headless')
-    if proxy:
-        raise NotImplementedError('Proxy support is not implemented for this browser')
-    return options
 
 
 def edge_defaults(*args, headless: bool = False, proxy: dict = None, **kwargs) -> EdgeOptions:
@@ -162,7 +138,7 @@ class UnsupportedBrowserException(Exception):
     Supported browsers are:
         - Chrome
         - Firefox
-        - Safari
+        
         - Edge
     """
 
@@ -180,14 +156,12 @@ def _clean_name(name: str) -> str:
 drivers = {
     'chrome': webdriver.Chrome,
     'firefox': webdriver.Firefox,
-    'safari': webdriver.Safari,
-    'edge': webdriver.ChromiumEdge,
 }
 
 defaults = {
     'chrome': chrome_defaults,
     'firefox': firefox_defaults,
-    'safari': safari_defaults,
+    
     'edge': edge_defaults,
 }
 
